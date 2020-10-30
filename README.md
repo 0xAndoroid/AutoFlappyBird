@@ -26,4 +26,4 @@ If you want to support me, you can donate <a href="https://www.liqpay.ua/en/chec
 <h6>Only payment card is accepted, paypal isn't available in my country.</h6>
 
 Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
-Email me if I used your materials.
+<p>Email me if I used your materials.</p>

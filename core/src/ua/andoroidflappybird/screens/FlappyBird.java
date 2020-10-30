@@ -8,14 +8,10 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import jdk.nashorn.internal.runtime.ECMAException;
 import ua.andoroidflappybird.Bird;
 import ua.andoroidflappybird.MaxScore;
 import ua.andoroidflappybird.Pipe;
@@ -29,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FlappyBird implements Screen{
-    private int population = 1000;
+    private int population = 2000;
     private int living =population;
 
     private Statements st;
@@ -44,7 +40,6 @@ public class FlappyBird implements Screen{
     private Label scoreLabel;
     private Label livingLabel;
     private Label maxScoreLabel;
-    private TextField populationTextField;
 
     private Texture birdTexture;
 
@@ -89,24 +84,7 @@ public class FlappyBird implements Screen{
         livingLabel.setPosition(10,1080-livingLabel.getHeight()-10);
         genLabel = new Label("0",skin, "title");
         genLabel.setPosition(1920/2f, 1080-livingLabel.getHeight()-10);
-        populationTextField = new TextField(population+"",skin);
-        populationTextField.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent changeEvent, Actor actor) {
-                int pop = population;
-                try{
-                    population = Integer.parseInt(populationTextField.getText());
-                    if(population < 1 || population > 10000) population = pop;
-                } catch (Exception ex) {
-                    population = pop;
-                }
-                restart();
-            }
-        });
-        populationTextField.setPosition(10,livingLabel.getY()-10-populationTextField.getHeight());
-        populationTextField.setWidth(200);
 
-        stage.addActor(populationTextField);
         Gdx.input.setInputProcessor(stage);
         birdTexture = new Texture(Gdx.files.internal("bird1.png"));
     }
@@ -145,6 +123,7 @@ public class FlappyBird implements Screen{
     }
 
     private void update(float delta) {
+        if(superSpeedMode) times = 10000/living;
         maxScore.updateHighScore(passedPipes);
         if(passedPipes > maxPassedPipes) maxPassedPipes = passedPipes;
 

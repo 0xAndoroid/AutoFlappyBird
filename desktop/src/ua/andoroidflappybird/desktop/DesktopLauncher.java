@@ -1,5 +1,6 @@
 package ua.andoroidflappybird.desktop;
 
+import com.badlogic.gdx.Files;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
@@ -15,6 +16,10 @@ public class DesktopLauncher {
 		config.x = 0;
 		config.y = 0;
 		config.resizable = false;
+		config.addIcon("icons/bird-16.png", Files.FileType.Internal);
+		config.addIcon("icons/bird-32.png", Files.FileType.Internal);
+		config.addIcon("icons/bird-128.png", Files.FileType.Internal);
+		config.addIcon("icons/bird-512.png", Files.FileType.Internal);
 		new LwjglApplication(new Main(), config);
 	}
 }

@@ -20,8 +20,10 @@ Written on Java with <a href="https://libgdx.badlogicgames.com/">LibGDX</a>
 
 
 # Project is finished but I welcome all proposal messages.
+Email for questions and proposals <a href="andriytretyakov@gmail.com">andriytretyakov@gmail.com</a>
 
 If you want to support me, you can donate <a href="https://www.liqpay.ua/en/checkout/andoroid">here</a>.
 <h6>Only payment card is accepted, paypal isn't available in my country.</h6>
 
 Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
+Email me if I used your materials.

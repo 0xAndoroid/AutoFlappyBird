@@ -21,7 +21,7 @@ public class Pipe {
         pipe1 = random.nextInt(1080-(int)height+1)+height;
         pipe2 = pipe1 - height;
         velocity = 200;
-        width = 150;
+        width = 200;
     }
 
     public void render(ShapeRenderer sr) {

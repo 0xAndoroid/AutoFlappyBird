@@ -8,8 +8,14 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import jdk.nashorn.internal.runtime.ECMAException;
 import ua.andoroidflappybird.Bird;
 import ua.andoroidflappybird.MaxScore;
 import ua.andoroidflappybird.Pipe;
@@ -17,12 +23,13 @@ import ua.andoroidflappybird.Statements;
 import ua.andoroidflappybird.neuralnetwork.NeuralNetwork;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FlappyBird implements Screen{
-    private int population = 200;
+    private int population = 1000;
     private int living =population;
 
     private Statements st;
@@ -30,12 +37,14 @@ public class FlappyBird implements Screen{
     private List<Pipe> pipes;
     private ShapeRenderer sr;
     private SpriteBatch batch;
+    private Stage stage;
     private OrthographicCamera camera;
     private int currPipeIndex = 0;
     private Label genLabel;
     private Label scoreLabel;
     private Label livingLabel;
     private Label maxScoreLabel;
+    private TextField populationTextField;
 
     private Texture birdTexture;
 
@@ -46,6 +55,8 @@ public class FlappyBird implements Screen{
 
     private int times = 1;
 
+    private boolean superSpeedMode = false;
+
     public FlappyBird(Statements st) {
         this.st = st;
     }
@@ -55,6 +66,7 @@ public class FlappyBird implements Screen{
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(false,1920,1080);
+        stage = new Stage(new FitViewport(1920, 1080));
         sr = new ShapeRenderer();
         sr.setProjectionMatrix(camera.combined);
         maxScore = new MaxScore();
@@ -77,23 +89,40 @@ public class FlappyBird implements Screen{
         livingLabel.setPosition(10,1080-livingLabel.getHeight()-10);
         genLabel = new Label("0",skin, "title");
         genLabel.setPosition(1920/2f, 1080-livingLabel.getHeight()-10);
+        populationTextField = new TextField(population+"",skin);
+        populationTextField.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent changeEvent, Actor actor) {
+                int pop = population;
+                try{
+                    population = Integer.parseInt(populationTextField.getText());
+                    if(population < 1 || population > 10000) population = pop;
+                } catch (Exception ex) {
+                    population = pop;
+                }
+                restart();
+            }
+        });
+        populationTextField.setPosition(10,livingLabel.getY()-10-populationTextField.getHeight());
+        populationTextField.setWidth(200);
 
+        stage.addActor(populationTextField);
+        Gdx.input.setInputProcessor(stage);
         birdTexture = new Texture(Gdx.files.internal("bird1.png"));
     }
 
     @Override
     public void render(float delta) {
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {times = 1;superSpeedMode = false;}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {times = 2;superSpeedMode = false;}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {times = 3;superSpeedMode = false;}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)) {times = 4;superSpeedMode = false;}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)) {times = 5;superSpeedMode = false;}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_6)) {times = 10000/living;superSpeedMode = true;}
+        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) {times = 0;superSpeedMode = false;}
         int prevTimes = times;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) prevTimes = 1;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) prevTimes = 2;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) prevTimes = 3;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)) prevTimes = 4;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)) prevTimes = 5;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_6)) prevTimes = 10000/population;
-        if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)) prevTimes = 0;
-        while (times-- > 0)
+        while (prevTimes-- > 0)
             update(delta);
-        times = prevTimes;
 
 
         Gdx.gl.glClearColor(1,1, 1,1f);
@@ -111,9 +140,26 @@ public class FlappyBird implements Screen{
         maxScoreLabel.draw(batch,1);
         scoreLabel.draw(batch,1);
         batch.end();
+        stage.act(delta);
+        stage.draw();
     }
 
     private void update(float delta) {
+        maxScore.updateHighScore(passedPipes);
+        if(passedPipes > maxPassedPipes) maxPassedPipes = passedPipes;
+
+        if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            Bird max = birds[0];
+            for(int i=1;i<population;i++)
+                if(max.getScore() < birds[i].getScore())
+                    max = birds[i];
+            if(max.getScore() > maxScore.getScore()) {
+                maxScore.setScore(max.getScore());
+                save(max);
+            }
+            Gdx.app.exit();
+        }
+
         if(living == 0) {
             Bird max = birds[0];
             for(int i=1;i<population;i++)
@@ -126,11 +172,9 @@ public class FlappyBird implements Screen{
             for(int i=0;i<population;i++) {
                 birds[i] = new Bird(new File(Gdx.files.internal("bestBird.json").path()));
                 if(i!=0)
-                    birds[i].mutate(0.1f);
+                    birds[i].mutate(1f);
             }
             restart();
-            currPipeIndex = 0;
-            living = population;
         }
         for(int i=0;i<population;i++)
             birds[i].update(delta,pipes.get(currPipeIndex).getPipe1(),pipes.get(currPipeIndex).getPipe2(),pipes.get(currPipeIndex).getPipeX(), pipes.get(currPipeIndex).getWidth());
@@ -159,8 +203,35 @@ public class FlappyBird implements Screen{
             }
         }
 
+        if(Gdx.input.isKeyJustPressed(Input.Keys.BACKSPACE)) {
+            File bb = new File(Gdx.files.internal("bestBird.json").path());
+            File ms = new File(Gdx.files.internal("maxScore.json").path());
+            try {
+                FileWriter writerbb = new FileWriter(bb);
+                FileWriter writerms = new FileWriter(ms);
+                writerbb.flush();
+                writerbb.close();
+                writerms.flush();
+                writerbb.close();
+            } catch (IOException ignored) {}
+
+            if(Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.ALT_RIGHT)) {
+                Gdx.app.exit();
+            }
+            maxScore = new MaxScore();
+            restart();
+            birds = new Bird[population];
+            for(int i=0;i<population;i++) {
+                birds[i] = new Bird(new File(Gdx.files.internal("bestBird.json").path()));
+                if(i!= 0)
+                    birds[i].mutate(0.1f);
+            }
+        }
+
+
+
         scoreLabel.setText("Score " + passedPipes);
-        maxScoreLabel.setText("Max score " + maxPassedPipes);
+        maxScoreLabel.setText("Max score " + maxScore.getHighScore());
         genLabel.setText("Gen " + maxScore.getGen());
         livingLabel.setText("Living " + living);
     }
@@ -171,6 +242,8 @@ public class FlappyBird implements Screen{
         if(maxPassedPipes < passedPipes) maxPassedPipes = passedPipes;
         passedPipes = 0;
         maxScore.setGen(maxScore.getGen()+1);
+        currPipeIndex = 0;
+        living = population;
     }
 
     @Override

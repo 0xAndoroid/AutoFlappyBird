@@ -12,23 +12,42 @@ import java.io.IOException;
 public class MaxScore {
     private int gen;
     private int score;
+    private int highScore;
 
     public MaxScore() {
         score = 0;
         gen = 1;
+        highScore = 0;
     }
 
-    public MaxScore(int score, int gen) {
+    public MaxScore(int score, int gen, int highScore) {
         this.score = score;
         this.gen = gen;
+        this.highScore = highScore;
     }
 
     public void setScore(int score) {
         this.score = score;
     }
 
+    public void updateScore(int score) {
+        if(score > this.score) this.score = score;
+    }
+
     public int getScore() {
         return score;
+    }
+
+    public void setHighScore(int highScore) {
+        this.highScore = highScore;
+    }
+
+    public int getHighScore() {
+        return highScore;
+    }
+
+    public void updateHighScore(int highScore) {
+        if(highScore > this.highScore) this.highScore = highScore;
     }
 
     public void setGen(int gen) {
@@ -54,8 +73,10 @@ public class MaxScore {
             MaxScore dd = gson.fromJson(new FileReader(file), this.getClass());
             this.gen = dd.gen;
             this.score = dd.score;
+            this.highScore = dd.highScore;
         } catch (Exception ex) {
             this.score = 0;
+            this.highScore = 0;
         }
     }
 }
